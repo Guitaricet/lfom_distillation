@@ -406,7 +406,7 @@ class FlaxDataCollatorForT5MLM:
         batch_size = input_ids.shape[0]
 
         input_ids_full = np.where(sentinel_ids != 0, sentinel_ids, input_ids)
-        input_ids = input_ids_full[input_ids_full > 0].reshape((batch_size, -1))
+        input_ids = input_ids_full[input_ids_full >= 0].reshape((batch_size, -1))
         input_ids = np.concatenate(
             [input_ids, np.full((batch_size, 1), self.tokenizer.eos_token_id, dtype=np.int32)], axis=-1
         )
@@ -651,7 +651,17 @@ def main():
     # Otherwise, we tokenize every text, then concatenate them together before splitting them in smaller parts.
     # Since we make sure that all sequences are of the same length, no attention_mask is needed.
     def tokenize_function(examples):
-        return tokenizer(examples[text_column_name], return_attention_mask=False)
+        encoding = tokenizer(examples[text_column_name], return_attention_mask=False)
+        input_ids = encoding["input_ids"]
+
+        # Collation in this script does not use padding and assumes that there is no padding in the input.
+        # The only 
+        has_0 = input_ids == 0
+        if has_0.any():
+            input_ids[has_0] = tokenizer.unk_token_id
+            encoding["input_ids"] = input_ids
+        
+        return encoding
 
     tokenized_datasets = datasets.map(
         tokenize_function,

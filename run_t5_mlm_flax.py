@@ -375,7 +375,7 @@ class FlaxDataCollatorForT5MLM:
         batch_size = input_ids.shape[0]
 
         input_ids_full = np.where(sentinel_ids != 0, sentinel_ids, input_ids)
-        input_ids = input_ids_full[input_ids_full > 0].reshape((batch_size, -1))
+        input_ids = input_ids_full[input_ids_full >= 0].reshape((batch_size, -1))
         input_ids = np.concatenate(
             [input_ids, np.full((batch_size, 1), self.tokenizer.eos_token_id, dtype=np.int32)], axis=-1
         )
@@ -507,6 +507,7 @@ def main():
 
     # Log on each process the small summary:
     logger = logging.getLogger(__name__)
+    logging.getLogger("blib2to3.pgen2.driver").setLevel(logging.WARNING)
 
     # Set the verbosity to info of the Transformers logger (on main process only):
     logger.info(f"Training/evaluation parameters {training_args}")

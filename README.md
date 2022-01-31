@@ -27,12 +27,12 @@ export CACHE_DIR=/mnt/home/.cache/datasets
 python run_t5_mlm_flax.py \
 	--output_dir=$MODEL_DIR \
 	--model_type="t5" \
-	--config_name=$MODEL_DIR \
+	--config_name="tiny_model_config" \
 	--tokenizer_name="t5-large" \
 	--dataset_name="c4" \
 	--dataset_config_name="en" \
     --cache_dir $CACHE_DIR \
-	--preprocessing_num_workers="32" \
+	--preprocessing_num_workers="128" \
 	--max_seq_length="128" \
 	--per_device_train_batch_size="1024" \
 	--per_device_eval_batch_size="1024" \
@@ -44,11 +44,12 @@ python run_t5_mlm_flax.py \
 	--logging_steps="8" \
 	--save_steps="1024" \
 	--eval_steps="512" \
-    --num_train_steps "8192" \
-	--dataset_fraction="0.01" # DEBUG option, make sure that validation set is still more that 1 element
+    --num_train_epochs "1" \
+	--push_to_hub \
+	--dataset_fraction="0.1"
 ```
 
-Original T5 was pre-trained for `524,288` steps with batch size `128` and sequence length `512`. We cut this number by `64`, because our batch size is `32 * 8` times larger (8 devices) and sequence length is `4` times smaller which yields `8192` steps.
+Original T5 was pre-trained for `524,288` steps with batch size `128` and sequence length `512`. We cut this number by `64`, because our batch size is `32 * 8` times larger (8 devices) and sequence length is `4` times smaller which yields `8192` steps. Weirdly, it is slightly less than one epoch, so we decided to set it to one epoch exactly.
 
 
 ### Step 2. Distill T5

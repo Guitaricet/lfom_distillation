@@ -19,7 +19,7 @@ def main():
 
     os.makedirs(MODEL_DIR, exist_ok=True)
 
-    student_config.save_pretrained(MODEL_DIR)
+    student_config.save_pretrained("tiny_model_config")
 
 
 if __name__ == "__main__":
