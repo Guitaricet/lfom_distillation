@@ -75,7 +75,7 @@ python run_lfom_distillation_flax.py \
 	--dataset_name="c4" \
 	--dataset_config_name="en" \
     --cache_dir $CACHE_DIR \
-	--preprocessing_num_workers="8" \
+	--preprocessing_num_workers="64" \
 	--max_seq_length="256" \
 	--temperature 2.0 \
 	--per_device_train_batch_size="64" \

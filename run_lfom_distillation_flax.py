@@ -715,9 +715,9 @@ def main():
         student_model = FlaxT5ForConditionalGeneration(config, seed=training_args.seed, dtype=getattr(jnp, model_args.dtype))
 
     weak_model = None
-    if training_args.weak_model_name_or_path:
+    if model_args.weak_model_name_or_path:
         weak_model = FlaxT5ForConditionalGeneration.from_pretrained(
-            training_args.weak_model_name_or_path, seed=training_args.seed, dtype=getattr(jnp, model_args.dtype)
+            model_args.weak_model_name_or_path, seed=training_args.seed, dtype=getattr(jnp, model_args.dtype)
         )
 
     # Enable wandb only on the master node
