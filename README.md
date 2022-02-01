@@ -58,9 +58,9 @@ Original T5 was pre-trained for `524,288` steps with batch size `128` and sequen
 
 ```bash
 export TOKENIZERS_PARALLELISM=false
-export MODEL_DIR=pretrained_models/t5_2l_8h_512d_2048ff_lfom_distil_debug
+export MODEL_DIR=pretrained_models/t5_2l_8h_512d_2048ff_lfom_distil
 export TEACHER_MODEL=t5-small
-export WEAK_MODEL=t5_2l_8h_512d_2048ff
+export WEAK_MODEL=pretrained_models/t5_2l_8h_512d_2048ff
 
 # REMEMBER TO REPLACE --config-name $WEAK_MODEL with a normal config
 # REMEMBER TO ADD --weak_model_name_or_path
@@ -73,12 +73,13 @@ python run_lfom_distillation_flax.py \
 	--teacher_model_name_or_path=$TEACHER_MODEL \
     --weak_model_name_or_path=$WEAK_MODEL \
 	--dataset_name="c4" \
-	--dataset_config_name="realnewslike" \
+	--dataset_config_name="en" \
+    --cache_dir $CACHE_DIR \
 	--preprocessing_num_workers="8" \
 	--max_seq_length="256" \
 	--temperature 2.0 \
-	--per_device_train_batch_size="128" \
-	--per_device_eval_batch_size="128" \
+	--per_device_train_batch_size="64" \
+	--per_device_eval_batch_size="64" \
 	--adafactor \
 	--learning_rate="0.01" \
 	--weight_decay="0.001" \
@@ -87,6 +88,7 @@ python run_lfom_distillation_flax.py \
 	--logging_steps="8" \
 	--save_steps="1024" \
 	--eval_steps="512" \
-  --num_train_steps "8192" \
+    --num_train_epochs "1" \
+	--push_to_hub \
 	--dataset_fraction="0.1" # DEBUG option, make sure that validation set is still more that 1 element
 ```

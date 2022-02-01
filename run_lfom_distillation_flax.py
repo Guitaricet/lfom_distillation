@@ -651,17 +651,7 @@ def main():
     # Otherwise, we tokenize every text, then concatenate them together before splitting them in smaller parts.
     # Since we make sure that all sequences are of the same length, no attention_mask is needed.
     def tokenize_function(examples):
-        encoding = tokenizer(examples[text_column_name], return_attention_mask=False)
-        input_ids = encoding["input_ids"]
-
-        # Collation in this script does not use padding and assumes that there is no padding in the input.
-        # The only 
-        has_0 = input_ids == 0
-        if has_0.any():
-            input_ids[has_0] = tokenizer.unk_token_id
-            encoding["input_ids"] = input_ids
-        
-        return encoding
+        return tokenizer(examples[text_column_name], return_attention_mask=False)
 
     tokenized_datasets = datasets.map(
         tokenize_function,
