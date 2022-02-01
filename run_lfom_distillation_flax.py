@@ -630,7 +630,7 @@ def main():
 
     if model_args.config_name:
         config = T5Config.from_pretrained(
-            model_args.config_name, cache_dir=model_args.cache_dir, vocab_size=len(tokenizer)
+            model_args.config_name, cache_dir=model_args.cache_dir,
         )
     elif model_args.model_name_or_path:
         config = T5Config.from_pretrained(model_args.model_name_or_path, cache_dir=model_args.cache_dir)

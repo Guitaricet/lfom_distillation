@@ -600,7 +600,7 @@ def main():
 
     if model_args.config_name:
         config = T5Config.from_pretrained(
-            model_args.config_name, cache_dir=model_args.cache_dir, vocab_size=len(tokenizer)
+            model_args.config_name, cache_dir=model_args.cache_dir,
         )
     elif model_args.model_name_or_path:
         config = T5Config.from_pretrained(model_args.model_name_or_path, cache_dir=model_args.cache_dir)
@@ -678,7 +678,6 @@ def main():
             model_args.model_name_or_path, config=config, seed=training_args.seed, dtype=getattr(jnp, model_args.dtype)
         )
     else:
-        config.vocab_size = len(tokenizer)
         model = FlaxT5ForConditionalGeneration(config, seed=training_args.seed, dtype=getattr(jnp, model_args.dtype))
 
     # Enable wandb only on the master node
