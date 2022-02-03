@@ -843,7 +843,7 @@ def main():
     # load state if exists
     if training_args.skip_train_steps > 0:
         logger.info("Trying to resume training, setting state.steps to skip_train_step and loading optimizer state from optax checkpoint.")
-        state = state.replace(steps=training_args.skip_train_steps)
+        state = state.replace(step=training_args.skip_train_steps)
 
         opt_path = os.path.join(training_args.output_dir, "opt_state.msgpack")
         if os.path.exists(opt_path):
