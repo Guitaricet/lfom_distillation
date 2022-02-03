@@ -46,7 +46,7 @@ import jax.numpy as jnp
 import optax
 from flax import jax_utils, traverse_util
 from flax.training import train_state
-from flax.training.common_utils import get_metrics, shard
+from flax.training.common_utils import get_metrics, onehot, shard
 from huggingface_hub import Repository
 from transformers import (
     CONFIG_MAPPING,
