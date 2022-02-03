@@ -44,6 +44,7 @@ import flax
 import jax
 import jax.numpy as jnp
 import optax
+import flax.serialization
 from flax import jax_utils, traverse_util
 from flax.training import train_state
 from flax.training.common_utils import get_metrics, onehot, shard
@@ -99,6 +100,7 @@ class TrainingArguments:
     adafactor: bool = field(default=False, metadata={"help": "Whether or not to replace AdamW by Adafactor."})
     num_train_epochs: float = field(default=3.0, metadata={"help": "Total number of training epochs to perform."})
     num_train_steps: int = field(default=None, metadata={"help": "Overrides the number of steps defined by `num_train_epochs`"})
+    skip_train_steps: int = field(default=0, metadata={"help": "Skip this many training steps. Can be used to restart the training after a failure."})
     warmup_steps: int = field(default=0, metadata={"help": "Linear warmup over warmup_steps."})
     logging_steps: int = field(default=500, metadata={"help": "Log every X updates steps."})
     save_steps: int = field(default=500, metadata={"help": "Save checkpoint every X updates steps."})
@@ -838,6 +840,18 @@ def main():
         tx=optimizer,
     )
 
+    # load state if exists
+    if training_args.skip_train_steps > 0:
+        logger.info("Trying to resume training, loading optimizer state from optax checkpoint.")
+        opt_path = os.path.join(training_args.output_dir, "opt_state.msgpack")
+        if os.path.exists(opt_path):
+            with open(opt_path, "rb") as f:
+                opt_state = flax.serialization.from_bytes(optax.OptState, f.read())
+            state.opt_state = opt_state
+
+        else:
+            logger.warning("Optimizer state not found, expect loss to explode.")
+
     # Define gradient update step fn
     def train_step(state, batch, dropout_rng):
         dropout_rng, new_dropout_rng = jax.random.split(dropout_rng)
@@ -911,6 +925,13 @@ def main():
 
         # Gather the indexes for creating the batch and do a training step
         for step, batch_idx in enumerate(tqdm(train_batch_idx, desc="Training...", position=1)):
+            cur_step = epoch * (num_train_samples // train_batch_size) + step
+
+            if cur_step < training_args.skip_train_steps:
+                # update lr scheduler
+                state.step = cur_step
+                continue
+
             samples = [tokenized_datasets["train"][int(idx)] for idx in batch_idx]
             model_inputs = data_collator(samples)
 
@@ -918,8 +939,6 @@ def main():
             model_inputs = shard(model_inputs.data)
             state, train_metric, dropout_rngs = p_train_step(state, model_inputs, dropout_rngs)
             train_metrics.append(train_metric)
-
-            cur_step = epoch * (num_train_samples // train_batch_size) + step
 
             if cur_step % training_args.logging_steps == 0 and cur_step > 0:
                 # Save metrics
@@ -960,6 +979,13 @@ def main():
                     params = jax.device_get(jax.tree_map(lambda x: x[0], state.params))
                     student_model.save_pretrained(training_args.output_dir, params=params)
                     tokenizer.save_pretrained(training_args.output_dir)
+
+                    opt_state = jax.device_get(jax.tree_map(lambda x: x[0], state.opt_state))
+                    opt_path = os.path.join(training_args.output_dir, "opt_state.msgpack")
+                    with open(opt_path, "wb") as f:
+                        opt_bytes = flax.serialization.to_bytes(opt_state)
+                        f.write(opt_bytes)
+
                     if training_args.push_to_hub:
                         repo.push_to_hub(commit_message=f"Saving weights and logs of step {cur_step}", blocking=False)
 
