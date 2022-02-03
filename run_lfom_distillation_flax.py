@@ -842,12 +842,15 @@ def main():
 
     # load state if exists
     if training_args.skip_train_steps > 0:
-        logger.info("Trying to resume training, loading optimizer state from optax checkpoint.")
+        logger.info("Trying to resume training, setting state.steps to skip_train_step and loading optimizer state from optax checkpoint.")
+        state = state.replace(steps=training_args.skip_train_steps)
+
         opt_path = os.path.join(training_args.output_dir, "opt_state.msgpack")
         if os.path.exists(opt_path):
             with open(opt_path, "rb") as f:
                 opt_state = flax.serialization.from_bytes(optax.OptState, f.read())
-            state.opt_state = opt_state
+            
+            state = state.replace(opt_state=opt_state)
 
         else:
             logger.warning("Optimizer state not found, expect loss to explode.")
@@ -928,8 +931,7 @@ def main():
             cur_step = epoch * (num_train_samples // train_batch_size) + step
 
             if cur_step < training_args.skip_train_steps:
-                # update lr scheduler
-                state.step = cur_step
+                # note that we have updated state.step above
                 continue
 
             samples = [tokenized_datasets["train"][int(idx)] for idx in batch_idx]
