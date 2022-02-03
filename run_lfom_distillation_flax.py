@@ -874,7 +874,10 @@ def main():
     def eval_step(params, batch):
         labels = batch.pop("labels")
 
-        loss, logits = student_model(**batch, params=params, train=False)[0]
+        logits = student_model(**batch, params=params, train=False)[0]
+
+        # compute loss
+        loss = optax.softmax_cross_entropy(logits, onehot(labels, logits.shape[-1]))
 
         # compute accuracy
         accuracy = jnp.equal(jnp.argmax(logits, axis=-1), labels)
