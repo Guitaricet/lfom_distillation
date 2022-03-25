@@ -593,6 +593,7 @@ def main():
     # Replicate the train state on each device
     state = jax_utils.replicate(state)
 
+    cur_step = 0
     if not training_args.do_eval_only:
         train_time = 0
         epochs = tqdm(range(num_epochs), desc="Epoch ... ", position=0)
