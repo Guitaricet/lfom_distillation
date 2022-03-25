@@ -350,8 +350,6 @@ class FlaxDataCollatorForT5MLM:
             batch["labels"], self.pad_token_id, self.decoder_start_token_id
         )
 
-        import ipdb; ipdb.set_trace()
-
         return batch
 
     def create_sentinel_ids(self, mask_indices):
