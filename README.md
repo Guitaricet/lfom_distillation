@@ -2,10 +2,6 @@
 
 T5 distillation in learning from other's mistakes way.
 
-# TODO
-[ ] Eval dropout05/distilt5_6l_8h_512d_2048ff on GLUE task
-[ ]
-
 # Installation
 
 ```bash
@@ -18,7 +14,7 @@ python -m pip install -r requirements.txt
 
 Run `prepare_env.py` to create output dir and T5_dummy config.
 
-## Step 1. Pre-train a dummy T5 model.
+### Step 1. Pre-train a dummy T5 model.
 
 This model will be used as a baseline model that makes mistakes.
 
@@ -26,6 +22,7 @@ This model will be used as a baseline model that makes mistakes.
 export TOKENIZERS_PARALLELISM=false
 export MODEL_DIR=pretrained_models/t5_2l_8h_512d_2048ff_vocab32128_fixed
 export CACHE_DIR=/mnt/home/.cache/datasets
+export NUM_WORKERS=64
 export WANDB_START_METHOD="thread"
 
 
@@ -57,16 +54,16 @@ python run_t5_mlm_flax.py \
 Original T5 was pre-trained for `524,288` steps with batch size `128` and sequence length `512`. We cut this number by `64`, because our batch size is `32 * 8` times larger (8 devices) and sequence length is `4` times smaller which yields `8192` steps. Weirdly, it is slightly less than one epoch, so we decided to set it to one epoch exactly.
 
 
-## Step 2. Distill T5
+### Step 2. Distill T5
 
 ## LFOM Distillation
 
 ```bash
 export TOKENIZERS_PARALLELISM=false
-export MODEL_DIR=pretrained_models/lfom_distilt5_6l_8h_512d_2048ff
+export MODEL_DIR=pretrained_models/t5_2l_8h_512d_2048ff_lfom_distil
 export TEACHER_MODEL=t5-large
-export WEAK_MODEL=pretrained_models/t5_2l_8h_512d_2048ff_vocab32128_fixed
-export CACHE_DIR=/mnt/home/.cache/datasets
+export WEAK_MODEL=pretrained_models/t5_2l_8h_512d_2048ff
+export WANDB_START_METHOD="thread"
 
 # REMEMBER TO REPLACE --config-name $WEAK_MODEL with a normal config
 # REMEMBER TO ADD --weak_model_name_or_path
