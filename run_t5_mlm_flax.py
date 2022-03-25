@@ -692,6 +692,8 @@ def main():
         eval_metrics = {f"eval_{metric_name}": value for metric_name, value in eval_metrics.items()}
         wandb.log(eval_metrics, step=cur_step)
         path = os.path.join(training_args.output_dir, "eval_results.json")
+        os.makedirs(training_args.output_dir, exist_ok=True)
+
         with open(path, "w") as f:
             json.dump(eval_metrics, f, indent=4, sort_keys=True)
 
