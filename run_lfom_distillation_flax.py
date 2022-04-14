@@ -98,7 +98,7 @@ class TrainingArguments:
     )
     temperature: float = field(default=1.0, metadata={"help": "Distillation temperature used in softmax."})
     learning_rate: float = field(default=5e-5, metadata={"help": "The initial learning rate for AdamW."})
-    gradient_accumulation_steps: int = field(default=1, metadata={"help": "Number of grad acc steps."}
+    gradient_accumulation_steps: int = field(default=1, metadata={"help": "Number of grad acc steps."})
     weight_decay: float = field(default=0.0, metadata={"help": "Weight decay for AdamW if we apply some."})
     adam_beta1: float = field(default=0.9, metadata={"help": "Beta1 for AdamW optimizer"})
     adam_beta2: float = field(default=0.999, metadata={"help": "Beta2 for AdamW optimizer"})
