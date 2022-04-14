@@ -98,6 +98,7 @@ class TrainingArguments:
     )
     temperature: float = field(default=1.0, metadata={"help": "Distillation temperature used in softmax."})
     learning_rate: float = field(default=5e-5, metadata={"help": "The initial learning rate for AdamW."})
+    gradient_accumulation_steps: int = field(default=1, metadata={"help": "Number of grad acc steps."}
     weight_decay: float = field(default=0.0, metadata={"help": "Weight decay for AdamW if we apply some."})
     adam_beta1: float = field(default=0.9, metadata={"help": "Beta1 for AdamW optimizer"})
     adam_beta2: float = field(default=0.999, metadata={"help": "Beta2 for AdamW optimizer"})
@@ -586,6 +587,9 @@ def main():
             mask=decay_mask_fn,
         )
 
+    if training_args.gradient_accumulation_steps:
+        optimizer = optax.MultiSteps(optimizer, every_k_schedule=training_args.gradient_accumulation_steps)
+
     # Setup train state
     def apply_distillation(student_params, teacher_params, student_model_fn, teacher_model_fn, temperature, weak_params=None, weak_model_fn=None, **batch):
         student_logits = student_model_fn(params=student_params, **batch)[0]
@@ -646,6 +650,7 @@ def main():
         def loss_fn(student_params, teacher_params):
             labels = batch.pop("labels")  # we do not use labels, because distillation uses teacher logits
 
+            # TODO: double check that it works, because batch is not a part of this function
             loss, _ = state.apply_fn(
                 **batch,
                 student_params=student_params,
@@ -781,7 +786,7 @@ def main():
 
     # Eval after training
     if training_args.do_eval:
-        logger.info("Running final evaluation")
+        logger.info(f"Running final evaluation. The model is saved to {training_args.output_dir}")
         num_eval_samples = len(tokenized_datasets["validation"])
         eval_samples_idx = jnp.arange(num_eval_samples)
         eval_batch_idx = generate_batch_splits(eval_samples_idx, eval_batch_size)
