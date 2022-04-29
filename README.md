@@ -191,7 +191,7 @@ python run_t5_mlm_flax.py \
     --config_name="t5-base" \
     --tokenizer_name="t5-large" \
     --dataset_name="c4" \
-    --dataset_config_name="en" \
+    --dataset_config_name="realnewslike" \
     --cache_dir $CACHE_DIR \
     --preprocessing_num_workers="128" \
     --max_seq_length="128" \
