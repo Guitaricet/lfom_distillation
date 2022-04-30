@@ -37,6 +37,7 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 import numpy as np
+import datasets as hf_datasets
 from datasets import load_dataset
 from tqdm import tqdm
 
@@ -49,14 +50,13 @@ from flax import jax_utils, traverse_util
 from flax.training import train_state
 from flax.training.common_utils import get_metrics, onehot, shard
 from huggingface_hub import Repository
+import transformers
 from transformers import (
     CONFIG_MAPPING,
     FLAX_MODEL_FOR_MASKED_LM_MAPPING,
     AutoTokenizer,
-    BatchEncoding,
     FlaxT5ForConditionalGeneration,
     HfArgumentParser,
-    PreTrainedTokenizerBase,
     T5Config,
     set_seed,
 )
@@ -72,6 +72,17 @@ from lfom_distillation.utils import (
 
 MODEL_CONFIG_CLASSES = list(FLAX_MODEL_FOR_MASKED_LM_MAPPING.keys())
 MODEL_TYPES = tuple(conf.model_type for conf in MODEL_CONFIG_CLASSES)
+
+
+logging.basicConfig(
+    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+    level=logging.INFO,
+    stream=sys.stdout,
+)
+logger = logging.getLogger(__name__)
+hf_datasets.utils.logging.set_verbosity_warning()
+transformers.utils.logging.set_verbosity_warning()
 
 
 @dataclass
@@ -636,7 +647,7 @@ def main():
         opt_path = os.path.join(training_args.output_dir, "opt_state.msgpack")
         if os.path.exists(opt_path):
             with open(opt_path, "rb") as f:
-                opt_state = flax.serialization.from_bytes(optax.OptState, f.read())
+                opt_state = flax.serialization.from_bytes(optax.MultiStepsState, f.read())
             
             state = state.replace(opt_state=opt_state)
 

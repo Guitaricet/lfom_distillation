@@ -1,4 +1,4 @@
 jax==0.2.27
 transformers[flax]
 datasets
-wandb
+wandb==0.12.14

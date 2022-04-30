@@ -6,7 +6,13 @@ T5 distillation in learning from other's mistakes way.
 
 ```bash
 python -m pip install -r requirements.txt
+python -m pip install --upgrade "jax[cuda]==0.2.27" -f https://storage.googleapis.com/jax-releases/jax_releases.html
+
+sudo apt install git-lfs
+git lfs install
 ```
+
+Authenticate in HuggingFace: `huggingface-cli login`
 
 # Run
 
