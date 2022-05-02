@@ -648,7 +648,13 @@ def main():
         if os.path.exists(opt_path):
             with open(opt_path, "rb") as f:
                 opt_state = flax.serialization.from_bytes(optax.MultiStepsState, f.read())
-            
+                opt_state = optax.MultiStepsState(
+                    mini_step=opt_state["mini_step"],
+                    gradient_step=opt_state["gradient_step"],
+                    inner_opt_state=opt_state["inner_opt_state"],
+                    acc_grads=opt_state["acc_grads"],
+                )
+
             state = state.replace(opt_state=opt_state)
 
         else:
