@@ -88,34 +88,34 @@ if __name__ == "__main__":
         decoded_preds = tokenizer.batch_decode(predictions, skip_special_tokens=True)
         # Replace -100 in the labels as we can't decode them.
         labels = np.where(labels != -100, labels, tokenizer.pad_token_id)
-        decoded_labels = tokenizer.batch_decode(labels, skip_special_tokens=True)
+        decoded_occupation_labels = tokenizer.batch_decode(labels, skip_special_tokens=True)
 
-        accuracy = sum(p == l for p, l in zip(decoded_preds, decoded_labels)) / len(decoded_preds)
+        accuracy = sum(p == l for p, l in zip(decoded_preds, decoded_occupation_labels)) / len(decoded_preds)
 
         # sanity check
-        for l1, l2 in zip(decoded_labels, dataset["test"]["title"]):
+        for l1, l2 in zip(decoded_occupation_labels, dataset["test"]["title"]):
             assert l1 == l2
 
         occupation2tpr_female = {}
         genders = dataset["test"]["gender"]
         for occupation in all_occupations:
-            n_correct = sum(p == l for p, l, g in zip(decoded_preds, decoded_labels, genders) if l == occupation and g == "F")
-            n_total = sum(1 for l, g in zip(decoded_labels, genders) if l == occupation and g == "F")
+            n_correct = sum(p == l for p, l, g in zip(decoded_preds, decoded_occupation_labels, genders) if l == occupation and g == "F")
+            n_total = sum(1 for l, g in zip(decoded_occupation_labels, genders) if l == occupation and g == "F")
             occupation2tpr_female[occupation] = n_correct / n_total
-        
+
         average_gap = 0
         occupation2gap = {}
         occupation2tpr_male = {}
         for occupation in all_occupations:
-            n_correct = sum(p == l for p, l, g in zip(decoded_preds, decoded_labels, genders) if l == occupation and g == "M")
-            n_total = sum(1 for l, g in zip(decoded_labels, genders) if l == occupation and g == "M")
+            n_correct = sum(p == l for p, l, g in zip(decoded_preds, decoded_occupation_labels, genders) if l == occupation and g == "M")
+            n_total = sum(1 for l, g in zip(decoded_occupation_labels, genders) if l == occupation and g == "M")
             occupation2tpr_male[occupation] = n_correct / n_total
 
             gap = occupation2tpr_female[occupation] - occupation2tpr_male[occupation]
             occupation2gap[occupation] = gap
             average_gap += gap ** 2
-        
-        average_gap = np.sqrt(average_gap) / len(all_occupations)
+
+        average_gap = np.sqrt(average_gap / len(all_occupations))
 
         return {
             "accuracy": accuracy,
