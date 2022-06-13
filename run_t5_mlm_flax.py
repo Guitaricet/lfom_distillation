@@ -92,6 +92,9 @@ class TrainingArguments:
     per_device_eval_batch_size: int = field(
         default=8, metadata={"help": "Batch size per GPU/TPU core/CPU for evaluation."}
     )
+    gradient_accumulation_steps: int = field(
+        default=1, metadata={"help": "Number of gradient accumulation steps, 1 for no gradient accumulation (default)"}
+    )
     learning_rate: float = field(default=5e-5, metadata={"help": "The initial learning rate for AdamW."})
     weight_decay: float = field(default=0.0, metadata={"help": "Weight decay for AdamW if we apply some."})
     adam_beta1: float = field(default=0.9, metadata={"help": "Beta1 for AdamW optimizer"})
@@ -538,6 +541,9 @@ def main():
             weight_decay=training_args.weight_decay,
             mask=decay_mask_fn,
         )
+
+    if training_args.gradient_accumulation_steps:
+        optimizer = optax.MultiSteps(optimizer, every_k_schedule=training_args.gradient_accumulation_steps)
 
     # Setup train state
     state = train_state.TrainState.create(apply_fn=model.__call__, params=model.params, tx=optimizer)
